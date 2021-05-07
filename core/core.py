@@ -1,14 +1,13 @@
 import time
 import logging
 import re
-from subprocess import Popen, PIPE
 
 from fastapi import status
 from fastapi.responses import PlainTextResponse
 
 from model.model import ListFiles
 from utils.utils import (success_response, decode_byte_value,
-                         convert_bytes_to_list)
+                         convert_bytes_to_list, pipe_open)
 
 
 logger = logging.getLogger("kambi_home_task")
@@ -37,12 +36,12 @@ async def list_files_executable(executable: ListFiles):
     :return response: Custom response for the user.
     """
 
-    if not re.search(pattern="ls", string=executable.parameter, flags=re.I):
-        logger.error("Command not yet implemented.")
-        return PlainTextResponse("Command not yet implemented.", status_code=status.HTTP_501_NOT_IMPLEMENTED)
+    # ls command
+    list_file_command = ["ls"]
 
-    # Command/parameters and current dir
-    list_file_command = executable.parameter.split(" ")
+    # Additional parameters
+    list_file_command = _get_additional_parameters(executable,
+                                                   list_file_command)
 
     # Another dir (if any)
     list_file_command = _get_directory(executable, list_file_command)
@@ -73,9 +72,16 @@ async def list_files_executable(executable: ListFiles):
 async def blocking_call():
     """
     Stimulates a blocking call.
-    To stimulates a non-blocking call, asyncio.sleep() can be used.
+    To stimulates a non-blocking call, asyncio.sleep() can be used alternatively.
     """
     time.sleep(5)
+
+
+def _get_additional_parameters(executable: ListFiles, list_file_command: list):
+    parameter = executable.parameter
+    if parameter != "":
+        list_file_command.append(parameter)
+    return list_file_command
 
 
 def _get_directory(executable: ListFiles, list_file_command: list):
@@ -87,20 +93,7 @@ def _get_directory(executable: ListFiles, list_file_command: list):
 
 def _get_output_or_error(list_file_command: list):
     try:
-        output, error = _pipe_open(list_file_command)
+        output, error = pipe_open(list_file_command)
         return output, error
     except:
         return PlainTextResponse(f"Ops! Something went wrong.", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-def _pipe_open(list_file_command: list):
-    """
-    A command is sent to the terminal which then returns an output or an error which is saved in a variable.
-
-    :param list_file_command: A complete list of commands sent to the terminal
-    :return output: An output containing the list of files (if successful)
-    :return error: An error containing the error response (if unsuccessful)
-    """
-    process = Popen(list_file_command, stdout=PIPE, stderr=PIPE)
-    output, error = process.communicate()
-    return output, error

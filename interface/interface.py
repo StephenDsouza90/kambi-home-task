@@ -19,7 +19,7 @@ def index():
     return {"message": "Welcome to the Kambi Home Task. Please navigate to /docs to use the swagger UI."}
 
 
-@app.post("/ls", tags=["Kambi"])
+@app.post("/ls", tags=["Commands"])
 async def list_files(executable: ListFiles):
     """
     Route for the "ls" command which accepts JSON data in the request.
@@ -30,6 +30,12 @@ async def list_files(executable: ListFiles):
     """
     response = await list_files_executable(executable)
     return response
+
+
+@app.post("/find", tags=["Commands"])
+async def find():
+    logger.error("Command not yet implemented.")
+    return PlainTextResponse("Command not yet implemented.", status_code=status.HTTP_501_NOT_IMPLEMENTED)
 
 
 @app.on_event("shutdown")
