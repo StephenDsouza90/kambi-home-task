@@ -63,10 +63,7 @@ async def list_files_executable(executable: ListFiles):
     # Simulate blocking call
     await blocking_call()
 
-    files_in_dir = convert_bytes_to_list(output)
-    response = success_response(" ".join(list_file_command), files_in_dir)
-    logger.info(response)
-
+    response = _get_response(output, list_file_command)
     return response
 
 
@@ -86,8 +83,7 @@ async def any_executable(executable: Any):
             logger.error(error)
             return PlainTextResponse("Ops! Sorry wrong command entered.", status_code=status.HTTP_400_BAD_REQUEST)
 
-    result = convert_bytes_to_list(output)
-    response = success_response(" ".join(command_list_with_param), result)
+    response = _get_response(output, command_list_with_param)
     return response
 
 
@@ -137,3 +133,10 @@ def _get_command_list_with_param(executable: Any, command_list: list):
     else:
         command_list_with_param = command_list + [parameters]
     return command_list_with_param
+
+
+def _get_response(output, commands):
+    result = convert_bytes_to_list(output)
+    response = success_response(" ".join(commands), result)
+    logger.info(response)
+    return response
