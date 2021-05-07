@@ -71,6 +71,15 @@ Enter the below URL on a browser.
 http://127.0.0.1:8000/docs
 ```
 
+The JSON payload
+
+```json
+{
+    "parameter": "ls",
+    "directory": ""
+}
+```
+
 ### Curl commands
 
 Another way to interact with the API is by entering a curl command in a separate terminal.
