@@ -6,46 +6,44 @@ from interface.interface import app
 client = TestClient(app)
 
 
-def test_echo():
-    response = client.post("/echo",
-                           json={"command": "echo",
-                                 "message": "Hello World!"})
-
+def test_list_files_for_current_directory():
+    response = client.post("/ls", json={"parameter": "ls",  "directory": ""})
     actual = response.json()
-    expected = {'command': 'echo Hello World!',
-                'output': 'Hello World!'}
-
+    expected = {"command": "ls",
+                "files": ["README.md", "__pycache__", "core", "interface",
+                          "logs", "model", "requirements.txt",
+                          "server.py", "tests", "utils", "venv"]}
     assert actual == expected
+    assert response.status_code == 200
 
 
-def test_list_files_for_present_directory():
-    response = client.post("/list-files",
-                           json={"command": "ls",
-                                 "directory": ""})
-    actual = response.json()
-    expected = {'command': 'ls ',
-                'output': ['README.md', '__pycache__', 'core', 'interface',
-                           'logs', 'model', 'requirements.txt', 'server.py',
-                           'tests', 'utils', 'venv', '']}
-
-    assert actual == expected
+def test_list_files_for_current_directory_with_parametes():
+    response = client.post("/ls", json={"parameter": "ls -l", "directory": ""})
+    assert response.status_code == 200
 
 
 def test_list_files_when_directory_does_not_exist():
-    response = client.post("/list-files",
-                           json={"command": "ls",
-                                 "directory": "/unknown/directory"})
-    actual = response.json()
-    expected = {'error': 'ls: /unknown/directory: No such file or directory'}
-
+    response = client.post("/ls", json={"parameter": "ls -l",
+                                        "directory": "/unknown/directory"})
+    actual = response.text
+    expected = "Ops! Sorry no such file or directory."
     assert actual == expected
+    assert response.status_code == 404
 
 
-def test_list_files_when_no_input_is_provided():
-    response = client.post("/list-files",
-                           json={"command": "",
-                                 "directory": ""})
-    actual = response.json()
-    expected = {'error': 'no input provided'}
-
+def test_list_files_when_wrong_command_is_provided():
+    response = client.post("/ls", json={"parameter": "ls -abc123",
+                                        "directory": ""})
+    actual = response.text
+    expected = "Ops! Sorry wrong command entered."
     assert actual == expected
+    assert response.status_code == 400
+
+
+def test_when_command_is_not_implemented():
+    response = client.post("/ls", json={"parameter": "echo",
+                                        "directory": "Hello World"})
+    actual = response.text
+    expected = "Command not yet implemented."
+    assert actual == expected
+    assert response.status_code == 501

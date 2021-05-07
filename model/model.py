@@ -1,22 +1,8 @@
 from pydantic import BaseModel
 
 
-class Command(BaseModel):
-    """
-    """
+class ListFiles(BaseModel):
+    """ Represents the list file properties """
 
-    command: str = ""
-
-
-class ListFiles(Command):
-    """
-    """
-
+    parameter: str = ""
     directory: str = ""
-
-
-class Echo(Command):
-    """
-    """
-
-    message: str = ""
