@@ -182,17 +182,18 @@ To run the test cases, run the following command:
 ```
 
 ```bash
-======================================================================================================= test session starts =======================================================================================================
+=============================================================================== test session starts ===============================================================================
 platform darwin -- Python 3.6.8, pytest-6.2.4, py-1.10.0, pluggy-0.13.1 -- /Users/stedsou/Documents/Stephen/kambi_home_task/kambi-home-task/venv/bin/python3.6
 cachedir: .pytest_cache
 rootdir: /Users/stedsou/Documents/Stephen/kambi_home_task/kambi-home-task
-collected 5 items
+collected 6 items
 
-tests/test_interface.py::test_list_files_for_current_directory PASSED                                                                                                                                                       [ 20%]
-tests/test_interface.py::test_list_files_for_current_directory_with_parametes PASSED                                                                                                                                        [ 40%]
-tests/test_interface.py::test_list_files_when_directory_does_not_exist PASSED                                                                                                                                               [ 60%]
-tests/test_interface.py::test_list_files_when_wrong_command_is_provided PASSED                                                                                                                                              [ 80%]
-tests/test_interface.py::test_when_command_is_not_implemented PASSED                                                                                                                                                        [100%]
+tests/test_interface.py::test_list_files_for_current_directory PASSED                                                                                                       [ 16%]
+tests/test_interface.py::test_list_files_for_current_directory_with_parametes PASSED                                                                                        [ 33%]
+tests/test_interface.py::test_list_files_when_directory_does_not_exist PASSED                                                                                               [ 50%]
+tests/test_interface.py::test_list_files_when_wrong_command_is_provided PASSED                                                                                              [ 66%]
+tests/test_interface.py::test_when_command_is_not_implemented PASSED                                                                                                        [ 83%]
+tests/test_interface.py::test_any_route PASSED                                                                                                                              [100%]
 
-======================================================================================================= 5 passed in 10.54s ========================================================================================================
+=============================================================================== 6 passed in 10.35s ================================================================================
 ```
