@@ -71,6 +71,9 @@ async def list_files_executable(executable: ListFiles):
 
 
 async def any_executable(executable: Any):
+    """
+    This is a function that handles any command that a user will provide.
+    """
 
     command_list = _get_all_commands(executable)
     command_list_with_param = _get_command_list_with_param(executable,
