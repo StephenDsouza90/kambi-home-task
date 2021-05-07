@@ -3,8 +3,8 @@ import logging
 from fastapi import FastAPI, status
 from fastapi.responses import PlainTextResponse
 
-from core.core import list_files_executable
-from model.model import ListFiles
+from core.core import list_files_executable, any_executable
+from model.model import ListFiles, Any
 
 
 app = FastAPI()
@@ -36,6 +36,15 @@ async def list_files(executable: ListFiles):
 async def find():
     logger.error("Command not yet implemented.")
     return PlainTextResponse("Command not yet implemented.", status_code=status.HTTP_501_NOT_IMPLEMENTED)
+
+
+@app.post("/any", tags=["Commands"])
+async def any(executable: Any):
+    """
+    Handles any command
+    """
+    response = await any_executable(executable)
+    return response
 
 
 @app.on_event("shutdown")

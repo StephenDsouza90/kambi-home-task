@@ -5,7 +5,8 @@ import re
 from fastapi import status
 from fastapi.responses import PlainTextResponse
 
-from model.model import ListFiles
+from model.model import ListFiles, Any
+
 from utils.utils import (success_response, decode_byte_value,
                          convert_bytes_to_list, pipe_open)
 
@@ -62,10 +63,27 @@ async def list_files_executable(executable: ListFiles):
     # Simulate blocking call
     await blocking_call()
 
-    files_in_dir = convert_bytes_to_list(output)
-    response = success_response(" ".join(list_file_command), files_in_dir)
-    logger.info(response)
+    response = _get_response(output, list_file_command)
+    return response
 
+
+async def any_executable(executable: Any):
+    """
+    This is a function that handles any command that a user will provide.
+    """
+
+    command_list = _get_all_commands(executable)
+    command_list_with_param = _get_command_list_with_param(executable,
+                                                           command_list)
+
+    output, error = _get_output_or_error(command_list_with_param)
+
+    if error:
+        if re.search(pattern="illegal option", string=decode_byte_value(error), flags=re.I):
+            logger.error(error)
+            return PlainTextResponse("Ops! Sorry wrong command entered.", status_code=status.HTTP_400_BAD_REQUEST)
+
+    response = _get_response(output, command_list_with_param)
     return response
 
 
@@ -91,9 +109,34 @@ def _get_directory(executable: ListFiles, list_file_command: list):
     return list_file_command
 
 
-def _get_output_or_error(list_file_command: list):
+def _get_output_or_error(commands: list):
     try:
-        output, error = pipe_open(list_file_command)
+        output, error = pipe_open(commands)
         return output, error
     except:
         return PlainTextResponse(f"Ops! Something went wrong.", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def _get_all_commands(executable: Any):
+    command = executable.command
+    if " " in command:
+        command_list = command.split(" ")
+    else:
+        command_list = [command]
+    return command_list
+
+
+def _get_command_list_with_param(executable: Any, command_list: list):
+    parameters = executable.parameter
+    if parameters == "":
+        command_list_with_param = command_list
+    else:
+        command_list_with_param = command_list + [parameters]
+    return command_list_with_param
+
+
+def _get_response(output, commands):
+    result = convert_bytes_to_list(output)
+    response = success_response(" ".join(commands), result)
+    logger.info(response)
+    return response
