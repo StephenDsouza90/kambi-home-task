@@ -6,3 +6,9 @@ class ListFiles(BaseModel):
 
     parameter: str = ""
     directory: str = ""
+
+
+class Any(BaseModel):
+
+    command: str = ""
+    parameter: str = ""

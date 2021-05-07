@@ -37,3 +37,9 @@ def test_list_files_when_wrong_command_is_provided():
 def test_when_command_is_not_implemented():
     response = client.post("/find", json="")
     assert response.status_code == 501
+
+
+def test_any_route():
+    response = client.post("/any", json={"command": "df -h",
+                                         "parameter": ""})
+    assert response.status_code == 200
