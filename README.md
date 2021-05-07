@@ -73,10 +73,12 @@ http://127.0.0.1:8000/docs
 
 The JSON payload
 
+By default, `ls` will be used and a user can provide additional parameters.
+
 ```json
 {
-    "parameter": "ls",
-    "directory": ""
+    "parameter": "-l",
+    "directory": "/Users/stedsou/kambi-home-task"
 }
 ```
 
@@ -87,7 +89,7 @@ Another way to interact with the API is by entering a curl command in a separate
 Curl commands can be used as follows:
 
 ```bash
->> curl -X 'POST' 'http://127.0.0.1:8000/ls' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"parameter": "ls", "directory": ""}'
+>> curl -X 'POST' 'http://127.0.0.1:8000/ls' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"parameter": "-l", "directory": "/Users/stedsou/kambi-home-task"}'
 ```
 
 <details>
@@ -95,18 +97,22 @@ Curl commands can be used as follows:
 
 ```json
 {
-    "command": "ls",
-    "files":["README.md",
-            "__pycache__",
-            "core",
-            "interface",
-            "logs",
-            "model",
-            "requirements.txt",
-            "server.py",
-            "tests",
-            "utils",
-            "venv"]
+  "command": "ls -l /Users/stedsou/kambi-home-task",
+  "files": [
+    "total 40",
+    "-rw-r--r--@ 1 stedsou  58041779  7558  7 May 17:14 README.md",
+    "drwxr-xr-x  4 stedsou  58041779   128  5 May 16:41 __pycache__",
+    "-rw-r--r--  1 stedsou  58041779     6  7 May 17:13 app.pid",
+    "drwxr-xr-x  4 stedsou  58041779   128  7 May 17:04 core",
+    "drwxr-xr-x  4 stedsou  58041779   128  7 May 16:59 interface",
+    "drwxr-xr-x  3 stedsou  58041779    96  7 May 00:57 logs",
+    "drwxr-xr-x  4 stedsou  58041779   128  7 May 16:59 model",
+    "-rw-r--r--  1 stedsou  58041779   518  5 May 16:52 requirements.txt",
+    "-rw-r--r--  1 stedsou  58041779   280  5 May 16:41 server.py",
+    "drwxr-xr-x  5 stedsou  58041779   160  7 May 17:08 tests",
+    "drwxr-xr-x  4 stedsou  58041779   128  7 May 10:37 utils",
+    "drwxr-xr-x  6 stedsou  58041779   192  2 May 17:09 venv"
+  ]
 }
 ```
 
@@ -114,27 +120,27 @@ Curl commands can be used as follows:
 
 ## Implementation of the task
 
-The app is written in Python Programming Language and the API is built using FastAPI. This app is also written with asynchronous coding using async/await keywords.
+The app is written in Python Programming Language and the API is built using FastAPI. This app is also written with asynchronous coding using AsyncIO framework.
 
 ### API and Executables
 
-The `/ls` route accepts JSON structure data as a payload. The route is mapped to function which will execute a command in a terminal. However, the result will not be printed in the terminal but rather saved in a variable so that the response can be sent back to the user.
+The `/ls` route accepts JSON structure data as a payload. The route is mapped to function which will execute a command in a terminal. This will call the ls command, parse the output and return it back to the client in JSON format.
 
-The JSON structure contains two keys:
-- parameter: where a user can provides commands such as `ls`or `ls -l`or any other valid `ls`parameter.
+The input JSON structure contains two keys:
+- parameter: where a user can provides commands such as `-l`, `-alh` or any other valid `ls`parameter.
 - directory: where a user specifies a directory for which they want the list of files. If no directory is provided then a default directory is used.
 
 A response with the result will be sent to the user. If in case there are any errors then a custom message will be sent to the user.
 
 ### Blocking Call
 
-To simulate a blocking call, the `time.sleep()` is used. Any function that calls the `blocking_call()`, that process will sleep for 5 seconds. The `blocking_call()` itself is an asynchronous function which mean it will pass on control to any other function while the `blocking_call()` function is sleeping.
+To simulate a blocking call, the `time.sleep()` is used. Any function that calls the `blocking_call()` will execute the `sleep()` command, but AsyncIO event loop will recognize it and switch context to another thread to continue taking on new requests. The `blocking_call()` is made an asynchronous by setting the async keyword to the function which mean it will pass on control to any other function upon the blocking call to not block the process.
 
-In order to simulate a non-blocking call, the `asyncio.sleep()` can be used. More information can be found [here](https://stackoverflow.com/questions/56729764/python-3-7-asyncio-sleep-and-time-sleep)
+Alternatively, one could also use `asyncio.sleep()` instead.
 
 ### Graceful Shutdown
 
-To shutdown the server in a graceful way, the `kill` command can be used from another terminal. The `kill` command sends the specified signal to the specified processes or process groups. In this app, the `process_id` is saved in the app.pid file when the server is running.
+To shutdown the server in a graceful way, the `kill` command can be used. The `kill` command can send the TERM or 15 signal to the process telling the application it needs to prepare to shutdown. In this app, the `process_id` is saved in the app.pid file when the server is running.
 
 To kill the process, run the following command:
 
@@ -142,7 +148,17 @@ To kill the process, run the following command:
 >> kill -15 <process_id>
 ```
 
-If in case any requests are in process, then the server will shutdown after the requests have been completed. This process can be viewed in the terminal running the server or in the log file.
+If in case any requests are in flight, then the server will shutdown after the requests in flight have been completed. This process can be viewed in the terminal running the server or in the log file.
+
+**Sample log**
+
+```bash
+[2021-05-07 17:31:38 +0200] [56051] [INFO] Waiting for application shutdown.
+[2021-05-07 17:31:38 +0200] [56051] [INFO] Application shutdown complete.
+[2021-05-07 17:31:38 +0200] [56051] [INFO] Finished server process [56051]
+[2021-05-07 17:31:38 +0200] [56051] [INFO] Worker exiting (pid: 56051)
+[2021-05-07 17:31:38 +0200] [56045] [INFO] Shutting down: Master
+```
 
 ### Custom Messages
 

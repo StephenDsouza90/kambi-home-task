@@ -1,5 +1,19 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
+from subprocess import Popen, PIPE
+
+
+def pipe_open(commands: list):
+    """
+    A command is sent to the terminal which then returns an output or an error which is saved in a variable.
+
+    :param commands: A complete list of commands sent to the terminal
+    :return output: An output containing the list of files (if successful)
+    :return error: An error containing the error response (if unsuccessful)
+    """
+    process = Popen(commands, stdout=PIPE, stderr=PIPE)
+    output, error = process.communicate()
+    return output, error
 
 
 def success_response(command: str, files: list):
