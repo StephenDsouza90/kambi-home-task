@@ -173,6 +173,62 @@ Currently the supported status code are:
 
 These messages are logged in the logs/api.log.
 
+
+## Routes
+
+This app has three routes which are as follows:
+
+### /ls
+
+Users can list files from a directory using the `/ls` route. By default the `ls` command will be used and users can provide additional parameters.
+
+### /find
+
+The `/find` route was created to simulate a **501 NOT IMPLEMENTED** error with a custom message.
+
+### /any
+
+With the `/any` route, users can provide any command along with parameters.
+
+
+For example, the `df -h` command can be used as below:
+
+The JSON payload via the swagger UI
+
+```json
+{
+    "command": "df",
+    "parameter": "-h"
+}
+```
+
+or a curl command
+
+```bash
+curl -X 'POST' 'http://127.0.0.1:8000/any' -H 'accept: application/json' -H 'Content-Type: application/json' -d '{"command": "df", "parameter": "-h"}'
+```
+
+<details>
+<summary>Result</summary>
+
+```json
+{
+  "command": "df -h",
+  "files": [
+    "Filesystem       Size   Used  Avail Capacity iused      ifree %iused  Mounted on",
+    "/dev/disk1s1s1  466Gi   14Gi  352Gi     4%  559993 4881892847    0%   /",
+    "devfs           191Ki  191Ki    0Bi   100%     660          0  100%   /dev",
+    "/dev/disk1s4    466Gi  3.0Gi  352Gi     1%       4 4882452836    0%   /System/Volumes/VM",
+    "/dev/disk1s2    466Gi  304Mi  352Gi     1%    1189 4882451651    0%   /System/Volumes/Preboot",
+    "/dev/disk1s5    466Gi  1.1Mi  352Gi     1%      19 4882452821    0%   /System/Volumes/Update",
+    "/dev/disk1s6    466Gi   95Gi  352Gi    22% 1821728 4880631112    0%   /System/Volumes/Data",
+    "map auto_home     0Bi    0Bi    0Bi   100%       0          0  100%   /System/Volumes/Data/home",
+    "map -fstab        0Bi    0Bi    0Bi   100%       0          0  100%   /System/Volumes/Data/Network/Servers"
+  ]
+}
+```
+</details>
+
 ## Tests
 
 To run the test cases, run the following command:
