@@ -40,6 +40,6 @@ def test_when_command_is_not_implemented():
 
 
 def test_any_route():
-    response = client.post("/any", json={"command": "df -h",
-                                         "parameter": ""})
+    response = client.post("/any", json={"command": "df",
+                                         "parameter": "-h"})
     assert response.status_code == 200
