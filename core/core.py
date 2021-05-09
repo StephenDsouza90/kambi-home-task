@@ -7,8 +7,9 @@ from fastapi.responses import PlainTextResponse
 
 from model.model import ListFiles, Any
 
-from utils.utils import (success_response, decode_byte_value,
-                         convert_bytes_to_list, pipe_open)
+from utils.utils import (decode_byte_value, pipe_open, get_additional_parameters,
+                         get_directory, get_response, get_all_commands,
+                         get_command_list_with_param)
 
 
 logger = logging.getLogger("kambi_home_task")
@@ -41,14 +42,14 @@ async def list_files_executable(executable: ListFiles):
     list_file_command = ["ls"]
 
     # Additional parameters
-    list_file_command = _get_additional_parameters(executable,
-                                                   list_file_command)
+    list_file_command = get_additional_parameters(executable,
+                                                  list_file_command)
 
     # Another dir (if any)
-    list_file_command = _get_directory(executable, list_file_command)
+    list_file_command = get_directory(executable, list_file_command)
 
     # Executes a command in a terminal but returns an output or error which is saved in a variable
-    output, error = _get_output_or_error(list_file_command)
+    output, error = await get_output_or_error(list_file_command)
 
     if error:
         # When a parameter in a command is not valid
@@ -63,7 +64,7 @@ async def list_files_executable(executable: ListFiles):
     # Simulate blocking call
     await blocking_call()
 
-    response = _get_response(output, list_file_command)
+    response = get_response(output, list_file_command)
     return response
 
 
@@ -72,18 +73,18 @@ async def any_executable(executable: Any):
     This is a function that handles any command that a user will provide.
     """
 
-    command_list = _get_all_commands(executable)
-    command_list_with_param = _get_command_list_with_param(executable,
-                                                           command_list)
+    command_list = get_all_commands(executable)
+    command_list_with_param = get_command_list_with_param(executable,
+                                                          command_list)
 
-    output, error = _get_output_or_error(command_list_with_param)
+    output, error = await get_output_or_error(command_list_with_param)
 
     if error:
         if re.search(pattern="illegal option", string=decode_byte_value(error), flags=re.I):
             logger.error(error)
             return PlainTextResponse("Ops! Sorry wrong command entered.", status_code=status.HTTP_400_BAD_REQUEST)
 
-    response = _get_response(output, command_list_with_param)
+    response = get_response(output, command_list_with_param)
     return response
 
 
@@ -95,48 +96,9 @@ async def blocking_call():
     time.sleep(5)
 
 
-def _get_additional_parameters(executable: ListFiles, list_file_command: list):
-    parameter = executable.parameter
-    if parameter != "":
-        list_file_command.append(parameter)
-    return list_file_command
-
-
-def _get_directory(executable: ListFiles, list_file_command: list):
-    directory = executable.directory
-    if directory != "":
-        list_file_command.append(directory)
-    return list_file_command
-
-
-def _get_output_or_error(commands: list):
+async def get_output_or_error(commands: list):
     try:
         output, error = pipe_open(commands)
         return output, error
     except:
         return PlainTextResponse(f"Ops! Something went wrong.", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-def _get_all_commands(executable: Any):
-    command = executable.command
-    if " " in command:
-        command_list = command.split(" ")
-    else:
-        command_list = [command]
-    return command_list
-
-
-def _get_command_list_with_param(executable: Any, command_list: list):
-    parameters = executable.parameter
-    if parameters == "":
-        command_list_with_param = command_list
-    else:
-        command_list_with_param = command_list + [parameters]
-    return command_list_with_param
-
-
-def _get_response(output, commands):
-    result = convert_bytes_to_list(output)
-    response = success_response(" ".join(commands), result)
-    logger.info(response)
-    return response

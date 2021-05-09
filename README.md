@@ -180,7 +180,7 @@ This app has three routes which are as follows:
 
 ### /ls
 
-Users can list files from a directory using the `/ls` route. By default the `ls` command will be used and users can provide additional parameters.
+Users can list files from a directory using the `/ls` route and can provide additional parameters.
 
 ### /find
 
